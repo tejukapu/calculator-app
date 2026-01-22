@@ -2,19 +2,14 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "raviteja21k/calculator-app"
-        DOCKER_TAG = "latest"
-        DOCKER_CREDS = "dockerhub-creds"
-        GITHUB_CREDS = "github-creds"
+        AWS_REGION = 'eu-north-1'
+        ECR_REPO = '624909705616.dkr.ecr.eu-north-1.amazonaws.com/calculator-app'
     }
 
     stages {
-
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
-                git branch: 'main',
-                    credentialsId: "${GITHUB_CREDS}",
-                    url: 'https://github.com/tejukapu/calculator-app.git'
+                git url: 'https://github.com/tejukapu/calculator-app.git'
             }
         }
 
@@ -26,44 +21,26 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE:$DOCKER_TAG .'
+                sh 'docker build -t calculator-app .'
             }
         }
 
-        stage('Login to DockerHub') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: "${DOCKER_CREDS}",
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
-                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-                }
-            }
-        }
-
-        stage('Push Docker Image') {
-            steps {
-                sh 'docker push $DOCKER_IMAGE:$DOCKER_TAG'
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
+        stage('Login to ECR') {
             steps {
                 sh '''
-                sed -i "s|image:.*|image: $DOCKER_IMAGE:$DOCKER_TAG|" deployment.yaml
-                kubectl apply -f deployment.yaml
+                aws ecr get-login-password --region $AWS_REGION | \
+                docker login --username AWS --password-stdin 624909705616.dkr.ecr.$AWS_REGION.amazonaws.com
                 '''
             }
         }
-    }
 
-    post {
-        success {
-            echo "Pipeline completed successfully!"
-        }
-        failure {
-            echo "Pipeline failed!"
+        stage('Tag & Push Image') {
+            steps {
+                sh '''
+                docker tag calculator-app:latest $ECR_REPO:latest
+                docker push $ECR_REPO:latest
+                '''
+            }
         }
     }
 }
