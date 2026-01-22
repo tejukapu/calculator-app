@@ -2,14 +2,18 @@ pipeline {
     agent any
 
     environment {
-        AWS_REGION = 'eu-north-1'
-        ECR_REPO = '624909705616.dkr.ecr.eu-north-1.amazonaws.com/calculator-app'
+        AWS_REGION = "eu-north-1"
+        AWS_ACCOUNT_ID = "624909705616"
+        ECR_REPO = "calculator-app"
+        IMAGE_TAG = "latest"
+        ECR_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}"
     }
 
     stages {
+
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/tejukapu/calculator-app.git'
+                git branch: 'main', url: 'https://github.com/tejukapu/calculator-app.git'
             }
         }
 
@@ -21,7 +25,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t calculator-app .'
+                sh 'docker build -t ${ECR_REPO}:${IMAGE_TAG} .'
             }
         }
 
@@ -29,18 +33,27 @@ pipeline {
             steps {
                 sh '''
                 aws ecr get-login-password --region $AWS_REGION | \
-                docker login --username AWS --password-stdin 624909705616.dkr.ecr.$AWS_REGION.amazonaws.com
+                docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
                 '''
             }
         }
 
-        stage('Tag & Push Image') {
+        stage('Tag & Push Image to ECR') {
             steps {
                 sh '''
-                docker tag calculator-app:latest $ECR_REPO:latest
-                docker push $ECR_REPO:latest
+                docker tag ${ECR_REPO}:${IMAGE_TAG} ${ECR_URI}:${IMAGE_TAG}
+                docker push ${ECR_URI}:${IMAGE_TAG}
                 '''
             }
+        }
+    }
+
+    post {
+        success {
+            echo "Image successfully pushed to ECR!"
+        }
+        failure {
+            echo "Pipeline failed!"
         }
     }
 }
