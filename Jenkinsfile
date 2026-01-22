@@ -3,46 +3,42 @@ pipeline {
 
     environment {
         AWS_REGION = "eu-north-1"
-        AWS_ACCOUNT_ID = "624909705616"
-        ECR_REPO = "calculator-app"
-        IMAGE_TAG = "latest"
-        ECR_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}"
+        ECR_REPO = "624909705616.dkr.ecr.eu-north-1.amazonaws.com/calculator-app"
+        IMAGE_NAME = "calculator-app"
     }
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                git branch: 'main', url: 'https://github.com/tejukapu/calculator-app.git'
-            }
-        }
-
         stage('Build with Maven') {
             steps {
+                echo "Building application with Maven..."
                 sh 'mvn clean package'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t ${ECR_REPO}:${IMAGE_TAG} .'
+                echo "Building Docker Image..."
+                sh 'docker build -t $IMAGE_NAME:latest .'
             }
         }
 
-        stage('Login to ECR') {
+        stage('Login to AWS ECR') {
             steps {
+                echo "Logging into AWS ECR..."
                 sh '''
-                aws ecr get-login-password --region $AWS_REGION | \
-                docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+                aws ecr get-login-password --region $AWS_REGION \
+                | docker login --username AWS --password-stdin $ECR_REPO
                 '''
             }
         }
 
         stage('Tag & Push Image to ECR') {
             steps {
+                echo "Tagging & pushing image to ECR..."
                 sh '''
-                docker tag ${ECR_REPO}:${IMAGE_TAG} ${ECR_URI}:${IMAGE_TAG}
-                docker push ${ECR_URI}:${IMAGE_TAG}
+                docker tag $IMAGE_NAME:latest $ECR_REPO:latest
+                docker push $ECR_REPO:latest
                 '''
             }
         }
@@ -50,10 +46,10 @@ pipeline {
 
     post {
         success {
-            echo "Image successfully pushed to ECR!"
+            echo "CI/CD Pipeline completed successfully 🚀"
         }
         failure {
-            echo "Pipeline failed!"
+            echo "Pipeline failed ❌ Please check logs."
         }
     }
 }
