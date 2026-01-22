@@ -1,44 +1,53 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'Maven3'
+    }
+
     environment {
-        AWS_REGION = "eu-north-1"
-        ECR_REPO = "624909705616.dkr.ecr.eu-north-1.amazonaws.com/calculator-app"
-        IMAGE_NAME = "calculator-app"
+        AWS_REGION = 'eu-north-1'
+        AWS_ACCOUNT_ID = '624909705616'
+        ECR_REPO = 'calculator-app'
+        IMAGE_TAG = 'latest'
+        ECR_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}"
     }
 
     stages {
 
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/tejukapu/calculator-app.git',
+                    credentialsId: 'GitHub Cred'
+            }
+        }
+
         stage('Build with Maven') {
             steps {
-                echo "Building application with Maven..."
                 sh 'mvn clean package'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                echo "Building Docker Image..."
-                sh 'docker build -t $IMAGE_NAME:latest .'
+                sh 'docker build -t $ECR_REPO:$IMAGE_TAG .'
             }
         }
 
-        stage('Login to AWS ECR') {
+        stage('Login to ECR') {
             steps {
-                echo "Logging into AWS ECR..."
                 sh '''
-                aws ecr get-login-password --region $AWS_REGION \
-                | docker login --username AWS --password-stdin $ECR_REPO
+                aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
                 '''
             }
         }
 
-        stage('Tag & Push Image to ECR') {
+        stage('Tag & Push Image') {
             steps {
-                echo "Tagging & pushing image to ECR..."
                 sh '''
-                docker tag $IMAGE_NAME:latest $ECR_REPO:latest
-                docker push $ECR_REPO:latest
+                docker tag $ECR_REPO:$IMAGE_TAG $ECR_URI:$IMAGE_TAG
+                docker push $ECR_URI:$IMAGE_TAG
                 '''
             }
         }
@@ -46,10 +55,10 @@ pipeline {
 
     post {
         success {
-            echo "CI/CD Pipeline completed successfully 🚀"
+            echo "Pipeline completed successfully!"
         }
         failure {
-            echo "Pipeline failed ❌ Please check logs."
+            echo "Pipeline failed!"
         }
     }
 }
