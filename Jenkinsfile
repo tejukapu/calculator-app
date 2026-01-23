@@ -29,7 +29,10 @@ pipeline {
 
         stage('Build with Maven') {
             steps {
-                sh 'mvn clean package'
+                 script {
+            def mvnHome = tool name: 'Maven3', type: 'hudson.tasks.Maven$MavenInstallation'
+            sh "${mvnHome}/bin/mvn clean package"
+                 }
             }
         }
 
