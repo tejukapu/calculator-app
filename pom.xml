@@ -38,7 +38,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.devops.Calculator</mainClass>
+                            <mainClass>com.devops.calculator.CalculatorApplication</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
