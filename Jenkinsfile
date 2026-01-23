@@ -10,16 +10,16 @@ pipeline {
         AWS_REGION = 'eu-north-1'
         AWS_ACCOUNT_ID = '624909705616'
         ECR_REPO = 'calculator-app'
-        IMAGE_TAG = 'latest'
-        ECR_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}"
+        // Uses build number (1, 2, 3) to prevent image conflicts
+        IMAGE_TAG = "${env.BUILD_NUMBER}" 
+        ECR_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}://{ECR_REPO}"
     }
 
     stages {
-
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/tejukapu/calculator-app.git',
+                    url: 'https://github.com',
                     credentialsId: 'GitHub Cred'
             }
         }
@@ -32,15 +32,14 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
+                // Builds image as calculator-app:1, calculator-app:2, etc.
                 sh 'docker build -t $ECR_REPO:$IMAGE_TAG .'
             }
         }
 
         stage('Login to ECR') {
             steps {
-                sh '''
-                aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-                '''
+                sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URI}"
             }
         }
 
@@ -56,10 +55,10 @@ pipeline {
 
     post {
         success {
-            echo "Pipeline completed successfully!"
+            echo "Pipeline completed successfully! Image pushed: ${ECR_URI}:${IMAGE_TAG}"
         }
         failure {
-            echo "Pipeline failed!"
+            echo "Pipeline failed! Check the logs above for errors."
         }
     }
 }
