@@ -1,0 +1,117 @@
+#ubuntu@ip-172-31-17-71:~/calculator-app$ cd ~
+rm -rf calculator-app
+git clone https://github.com/tejukapu/calculator-app.git
+cd calculator-app
+ls
+Cloning into 'calculator-app'...
+remote: Enumerating objects: 60, done.
+remote: Counting objects: 100% (60/60), done.
+remote: Compressing objects: 100% (52/52), done.
+remote: Total 60 (delta 25), reused 5 (delta 2), pack-reused 0 (from 0)
+Receiving objects: 100% (60/60), 18.84 KiB | 3.77 MiB/s, done.
+Resolving deltas: 100% (25/25), done.
+Dockerfile  Jenkinsfile  README.md  pom.xml  src
+ubuntu@ip-172-31-17-71:~/calculator-app$ mvn clean package
+[INFO] Scanning for projects...
+[INFO]
+[INFO] -----------------------< com.devops:calculator >------------------------
+[INFO] Building Calculator App 1.0
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO]
+[INFO] --- maven-clean-plugin:2.5:clean (default-clean) @ calculator ---
+[INFO]
+[INFO] --- maven-resources-plugin:2.6:resources (default-resources) @ calculator ---
+[WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
+[INFO] skip non existing resourceDirectory /home/ubuntu/calculator-app/src/main/resources
+[INFO]
+[INFO] --- maven-compiler-plugin:3.13.0:compile (default-compile) @ calculator ---
+[INFO] Recompiling the module because of changed source code.
+[WARNING] File encoding has not been set, using platform encoding UTF-8, i.e. build is platform dependent!
+[INFO] Compiling 1 source file with javac [debug target 17] to target/classes
+[WARNING] system modules path not set in conjunction with -source 17
+[INFO]
+[INFO] --- maven-resources-plugin:2.6:testResources (default-testResources) @ calculator ---
+[WARNING] Using platform encoding (UTF-8 actually) to copy filtered resources, i.e. build is platform dependent!
+[INFO] skip non existing resourceDirectory /home/ubuntu/calculator-app/src/test/resources
+[INFO]
+[INFO] --- maven-compiler-plugin:3.13.0:testCompile (default-testCompile) @ calculator ---
+[INFO] No sources to compile
+[INFO]
+[INFO] --- maven-surefire-plugin:2.12.4:test (default-test) @ calculator ---
+[INFO] No tests to run.
+[INFO]
+[INFO] --- maven-jar-plugin:3.3.0:jar (default-jar) @ calculator ---
+[INFO] Building jar: /home/ubuntu/calculator-app/target/calculator-1.0.jar
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  2.341 s
+[INFO] Finished at: 2026-01-23T06:27:11Z
+[INFO] ------------------------------------------------------------------------
+ubuntu@ip-172-31-17-71:~/calculator-app$ ls target/
+calculator-1.0.jar  classes  generated-sources  maven-archiver  maven-status
+ubuntu@ip-172-31-17-71:~/calculator-app$ calculator-1.0.jar
+calculator-1.0.jar: command not found
+ubuntu@ip-172-31-17-71:~/calculator-app$ docker build -t calculator-app:1 .
+DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            Install the buildx component to build images with BuildKit:
+            https://docs.docker.com/go/buildx/
+
+Sending build context to Docker daemon  109.6kB
+Step 1/4 : FROM eclipse-temurin:17-jdk
+ ---> 53c2311899d3
+Step 2/4 : WORKDIR /app
+ ---> Using cache
+ ---> 3d6ed6989a26
+Step 3/4 : COPY target/calculator-1.0.jar app.jar
+ ---> 35bee71b444c
+Step 4/4 : ENTRYPOINT ["java", "-jar", "app.jar"]
+ ---> Running in b6003347132f
+ ---> Removed intermediate container b6003347132f
+ ---> bea2b5922cea
+Successfully built bea2b5922cea
+Successfully tagged calculator-app:1
+ubuntu@ip-172-31-17-71:~/calculator-app$ docker run --rm calculator-app:1
+Calculator App Started...
+Addition: 15
+Subtraction: 5
+Multiplication: 50
+Division: 2
+ubuntu@ip-172-31-17-71:~/calculator-app$ aws sts get-caller-identity
+{
+    "UserId": "AIDAZC74FMGIKBPA7MNM4",
+    "Account": "624909705616",
+    "Arn": "arn:aws:iam::624909705616:user/RaviTeja"
+}
+ubuntu@ip-172-31-17-71:~/calculator-app$ aws ecr get-login-password --region eu-north-1 | docker login --username AWS --password-stdin 624909705616.dkr.ecr.eu-north-1.amazonaws.com
+
+WARNING! Your credentials are stored unencrypted in '/home/ubuntu/.docker/config.json'.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/go/credential-store/
+
+Login Succeeded
+ubuntu@ip-172-31-17-71:~/calculator-app$ docker tag calculator-app:1 624909705616.dkr.ecr.eu-north-1.amazonaws.com/calculator-app:1
+docker push 624909705616.dkr.ecr.eu-north-1.amazonaws.com/calculator-app:1
+The push refers to repository [624909705616.dkr.ecr.eu-north-1.amazonaws.com/calculator-app]
+3fe574f66087: Pushed
+b8f283fdc94d: Layer already exists
+d2907f42189f: Layer already exists
+b0a9ce8e98a0: Layer already exists
+a5e42fffc303: Layer already exists
+83f7e124b1cd: Layer already exists
+123a078714d5: Layer already exists
+1: digest: sha256:57016614541c56e38b0e62a4257efe216ed9cb88ef443256db267ecb6144381a size: 1783
+ubuntu@ip-172-31-17-71:~/calculator-app$ docker rmi calculator-app:1
+docker pull 624909705616.dkr.ecr.eu-north-1.amazonaws.com/calculator-app:1
+docker run --rm 624909705616.dkr.ecr.eu-north-1.amazonaws.com/calculator-app:1
+Untagged: calculator-app:1
+1: Pulling from calculator-app
+Digest: sha256:57016614541c56e38b0e62a4257efe216ed9cb88ef443256db267ecb6144381a
+Status: Image is up to date for 624909705616.dkr.ecr.eu-north-1.amazonaws.com/calculator-app:1
+624909705616.dkr.ecr.eu-north-1.amazonaws.com/calculator-app:1
+Calculator App Started...
+Addition: 15
+Subtraction: 5
+Multiplication: 50
+Division: 2
+ubuntu@ip-172-31-17-71:~/calculator-app$#
