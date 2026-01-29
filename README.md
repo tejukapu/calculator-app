@@ -12,3 +12,4 @@ Pipeline Status:
 - Webhook working
 - ECR storing images with numeric increment tags
 - Jenkins pipeline tested successfully
+-For Webhook Trigger just Edit and update ec2 instance IP address thats it
