@@ -1,35 +1,44 @@
 package com.devops.calculator;
 
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@SpringBootApplication
+@RestController
 public class CalculatorApplication {
 
     public static void main(String[] args) {
-        System.out.println("Calculator App Started...");
-
-        int a = 10;
-        int b = 5;
-
-        System.out.println("Addition: " + add(a, b));
-        System.out.println("Subtraction: " + subtract(a, b));
-        System.out.println("Multiplication: " + multiply(a, b));
-        System.out.println("Division: " + divide(a, b));
+        SpringApplication.run(CalculatorApplication.class, args);
     }
 
-    public static int add(int x, int y) {
-        return x + y;
+    @GetMapping("/add")
+    public int add(@RequestParam int a, @RequestParam int b) {
+        return a + b;
     }
 
-    public static int subtract(int x, int y) {
-        return x - y;
+    @GetMapping("/subtract")
+    public int subtract(@RequestParam int a, @RequestParam int b) {
+        return a - b;
     }
 
-    public static int multiply(int x, int y) {
-        return x * y;
+    @GetMapping("/multiply")
+    public int multiply(@RequestParam int a, @RequestParam int b) {
+        return a * b;
     }
 
-    public static int divide(int x, int y) {
-        if (y == 0) {
+    @GetMapping("/divide")
+    public int divide(@RequestParam int a, @RequestParam int b) {
+        if (b == 0) {
             throw new IllegalArgumentException("Cannot divide by zero");
         }
-        return x / y;
+        return a / b;
+    }
+
+    @GetMapping("/health")
+    public String health() {
+        return "OK";
     }
 }
