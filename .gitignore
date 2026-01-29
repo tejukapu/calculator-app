@@ -1,8 +1,6 @@
 # Maven
 target/
 
-# Spring Boot
-src/main/resources/
 
 # Logs
 *.log

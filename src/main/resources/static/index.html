@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calculator App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 80px;
+        }
+        input, select, button {
+            padding: 8px;
+            margin: 5px;
+            font-size: 16px;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 22px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Calculator App</h1>
+
+<input type="number" id="a" placeholder="Enter A">
+<select id="op">
+    <option value="add">+</option>
+    <option value="subtract">-</option>
+    <option value="multiply">*</option>
+    <option value="divide">/</option>
+</select>
+<input type="number" id="b" placeholder="Enter B">
+
+<br>
+<button onclick="calculate()">Calculate</button>
+
+<div id="result"></div>
+
+<script>
+function calculate() {
+    const a = document.getElementById("a").value;
+    const b = document.getElementById("b").value;
+    const op = document.getElementById("op").value;
+
+    if (a === "" || b === "") {
+        document.getElementById("result").innerText = "Please enter both values";
+        return;
+    }
+
+    fetch(`/${op}?a=${a}&b=${b}`)
+        .then(res => res.text())
+        .then(data => {
+            document.getElementById("result").innerText = "Result: " + data;
+        })
+        .catch(err => {
+            document.getElementById("result").innerText = "Error occurred";
+        });
+}
+</script>
+
+</body>
+</html>
