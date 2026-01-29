@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: calculator
-          image: 624909705616.dkr.ecr.eu-north-1.amazonaws.com/calculator-app:13
+          image: 624909705616.dkr.ecr.eu-north-1.amazonaws.com/calculator-app:latesto
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

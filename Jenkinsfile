@@ -29,10 +29,10 @@ pipeline {
 
         stage('Build with Maven') {
             steps {
-                 script {
-            def mvnHome = tool name: 'Maven3', type: 'hudson.tasks.Maven$MavenInstallation'
-            sh "${mvnHome}/bin/mvn clean package"
-                 }
+                script {
+                    def mvnHome = tool name: 'Maven3', type: 'hudson.tasks.Maven$MavenInstallation'
+                    sh "${mvnHome}/bin/mvn clean package"
+                }
             }
         }
 
@@ -55,7 +55,19 @@ pipeline {
             steps {
                 sh '''
                 docker tag $ECR_REPO:$IMAGE_TAG $ECR_URI:$IMAGE_TAG
+                docker tag $ECR_REPO:$IMAGE_TAG $ECR_URI:latest
+
                 docker push $ECR_URI:$IMAGE_TAG
+                docker push $ECR_URI:latest
+                '''
+            }
+        }
+
+        stage('Deploy to EKS') {
+            steps {
+                sh '''
+                kubectl rollout restart deployment calculator-deployment
+                kubectl rollout status deployment calculator-deployment
                 '''
             }
         }
@@ -63,7 +75,7 @@ pipeline {
 
     post {
         success {
-            echo "Image pushed with tag: ${IMAGE_TAG}"
+            echo "Image pushed with tags: ${IMAGE_TAG} and latest"
         }
         failure {
             echo "Pipeline failed!"
